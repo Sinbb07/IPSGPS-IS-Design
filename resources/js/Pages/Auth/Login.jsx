@@ -8,6 +8,10 @@ import Checkbox from '@/Components/Checkbox';
 
 export default function Login({ status, canResetPassword }) {
     const [isLogin, setIsLogin] = useState(true);
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -28,6 +32,13 @@ export default function Login({ status, canResetPassword }) {
         };
     }, []);
 
+    // Reset password visibility when switching tabs
+    useEffect(() => {
+        setShowLoginPassword(false);
+        setShowRegisterPassword(false);
+        setShowConfirmPassword(false);
+    }, [isLogin]);
+
     const submitLogin = (e) => {
         e.preventDefault();
         post(route('login'));
@@ -36,6 +47,21 @@ export default function Login({ status, canResetPassword }) {
     const submitRegister = (e) => {
         e.preventDefault();
         registerForm.post(route('register'));
+    };
+
+    const toggleLoginPassword = (e) => {
+        e.preventDefault();
+        setShowLoginPassword(!showLoginPassword);
+    };
+
+    const toggleRegisterPassword = (e) => {
+        e.preventDefault();
+        setShowRegisterPassword(!showRegisterPassword);
+    };
+
+    const toggleConfirmPassword = (e) => {
+        e.preventDefault();
+        setShowConfirmPassword(!showConfirmPassword);
     };
 
     return (
@@ -56,6 +82,7 @@ export default function Login({ status, canResetPassword }) {
                             {/* Navigation Buttons */}
                             <div className="flex items-center space-x-2">
                                 <button
+                                    type="button"
                                     onClick={() => setIsLogin(true)}
                                     className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ${
                                         isLogin 
@@ -66,6 +93,7 @@ export default function Login({ status, canResetPassword }) {
                                     Log In
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setIsLogin(false)}
                                     className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ${
                                         !isLogin 
@@ -85,8 +113,12 @@ export default function Login({ status, canResetPassword }) {
                     <div className="w-full sm:max-w-md">
                         {/* Welcome Text */}
                         <div className="text-center mb-8">
-                            <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                            <p className="text-gray-600 text-lg">Sign in to your account or create a new one</p>
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                                {isLogin ? 'Welcome Back' : 'Create Account'}
+                            </h1>
+                            <p className="text-gray-600 text-lg">
+                                {isLogin ? 'Sign in to your account' : 'Join us today'}
+                            </p>
                         </div>
 
                         {/* Form Card */}
@@ -100,7 +132,7 @@ export default function Login({ status, canResetPassword }) {
                                     <div className="mb-6">
                                         <InputLabel htmlFor="email" value="Email" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">☑️</span>
+                                            <span className="absolute left-4 top-3.5 text-gray-400">📧</span>
                                             <TextInput
                                                 id="email"
                                                 type="email"
@@ -116,21 +148,39 @@ export default function Login({ status, canResetPassword }) {
                                         <InputError message={errors.email} className="mt-2" />
                                     </div>
 
-                                    {/* Password Field */}
+                                    {/* Password Field with Persistent Emoji Toggle */}
                                     <div className="mb-6">
                                         <InputLabel htmlFor="password" value="Password" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">☑️</span>
-                                            <TextInput
+                                            <span className="absolute left-4 top-3.5 text-gray-400">🔒</span>
+                                            <input
                                                 id="password"
-                                                type="password"
+                                                type={showLoginPassword ? "text" : "password"}
                                                 name="password"
                                                 value={data.password}
-                                                className="mt-1 block w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
+                                                className="mt-1 block w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
                                                 placeholder="Enter your password"
                                                 autoComplete="current-password"
                                                 onChange={(e) => setData('password', e.target.value)}
+                                                // Multiple attributes to disable browser's password reveal
+                                                onContextMenu={(e) => e.preventDefault()}
+                                                onCopy={(e) => e.preventDefault()}
+                                                onPaste={(e) => e.preventDefault()}
+                                                style={{
+                                                    WebkitTextSecurity: showLoginPassword ? 'none' : 'disc',
+                                                    // Hide browser's native reveal button
+                                                    '::-ms-reveal': 'display: none',
+                                                    '::-ms-clear': 'display: none'
+                                                }}
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={toggleLoginPassword}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10 bg-white/50 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center"
+                                                tabIndex="-1"
+                                            >
+                                                {showLoginPassword ? '👁️' : '👁️‍🗨️'}
+                                            </button>
                                         </div>
                                         <InputError message={errors.password} className="mt-2" />
                                     </div>
@@ -172,9 +222,9 @@ export default function Login({ status, canResetPassword }) {
                                 <form onSubmit={submitRegister}>
                                     {/* Full Name Field */}
                                     <div className="mb-6">
-                                        <h2 className="text-gray-700 font-medium mb-2">Full Name</h2>
+                                        <InputLabel htmlFor="name" value="Full Name" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">- [x]</span>
+                                            <span className="absolute left-4 top-3.5 text-gray-400">👤</span>
                                             <TextInput
                                                 id="name"
                                                 name="name"
@@ -191,11 +241,11 @@ export default function Login({ status, canResetPassword }) {
 
                                     {/* Email Field */}
                                     <div className="mb-6">
-                                        <h2 className="text-gray-700 font-medium mb-2">Email</h2>
+                                        <InputLabel htmlFor="register-email" value="Email" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">- [ ]</span>
+                                            <span className="absolute left-4 top-3.5 text-gray-400">📧</span>
                                             <TextInput
-                                                id="email"
+                                                id="register-email"
                                                 type="email"
                                                 name="email"
                                                 value={registerForm.data.email}
@@ -208,42 +258,76 @@ export default function Login({ status, canResetPassword }) {
                                         <InputError message={registerForm.errors.email} className="mt-2" />
                                     </div>
 
-                                    {/* Password Field */}
+                                    {/* Password Field with Persistent Emoji Toggle */}
                                     <div className="mb-6">
-                                        <h2 className="text-gray-700 font-medium mb-2">Password</h2>
+                                        <InputLabel htmlFor="register-password" value="Password" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">- [ ]</span>
-                                            <TextInput
-                                                id="password"
-                                                type="password"
+                                            <span className="absolute left-4 top-3.5 text-gray-400">🔒</span>
+                                            <input
+                                                id="register-password"
+                                                type={showRegisterPassword ? "text" : "password"}
                                                 name="password"
                                                 value={registerForm.data.password}
-                                                className="mt-1 block w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
+                                                className="mt-1 block w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
                                                 placeholder="Create a password"
                                                 autoComplete="new-password"
                                                 onChange={(e) => registerForm.setData('password', e.target.value)}
+                                                // Multiple attributes to disable browser's password reveal
+                                                onContextMenu={(e) => e.preventDefault()}
+                                                onCopy={(e) => e.preventDefault()}
+                                                onPaste={(e) => e.preventDefault()}
+                                                style={{
+                                                    WebkitTextSecurity: showRegisterPassword ? 'none' : 'disc',
+                                                    // Hide browser's native reveal button
+                                                    '::-ms-reveal': 'display: none',
+                                                    '::-ms-clear': 'display: none'
+                                                }}
                                             />
-                                            <span className="absolute right-4 top-3.5 text-gray-400">(🔒)</span>
+                                            <button
+                                                type="button"
+                                                onClick={toggleRegisterPassword}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10 bg-white/50 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center"
+                                                tabIndex="-1"
+                                            >
+                                                {showRegisterPassword ? '👁️' : '👁️‍🗨️'}
+                                            </button>
                                         </div>
                                         <InputError message={registerForm.errors.password} className="mt-2" />
                                     </div>
 
-                                    {/* Confirm Password Field */}
+                                    {/* Confirm Password Field with Persistent Emoji Toggle */}
                                     <div className="mb-6">
-                                        <h2 className="text-gray-700 font-medium mb-2">Confirm Password</h2>
+                                        <InputLabel htmlFor="password_confirmation" value="Confirm Password" className="text-gray-700 font-medium mb-2" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-3.5 text-gray-400">- [ ]</span>
-                                            <TextInput
+                                            <span className="absolute left-4 top-3.5 text-gray-400">🔒</span>
+                                            <input
                                                 id="password_confirmation"
-                                                type="password"
+                                                type={showConfirmPassword ? "text" : "password"}
                                                 name="password_confirmation"
                                                 value={registerForm.data.password_confirmation}
-                                                className="mt-1 block w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
+                                                className="mt-1 block w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-all"
                                                 placeholder="Confirm your password"
                                                 autoComplete="new-password"
                                                 onChange={(e) => registerForm.setData('password_confirmation', e.target.value)}
+                                                // Multiple attributes to disable browser's password reveal
+                                                onContextMenu={(e) => e.preventDefault()}
+                                                onCopy={(e) => e.preventDefault()}
+                                                onPaste={(e) => e.preventDefault()}
+                                                style={{
+                                                    WebkitTextSecurity: showConfirmPassword ? 'none' : 'disc',
+                                                    // Hide browser's native reveal button
+                                                    '::-ms-reveal': 'display: none',
+                                                    '::-ms-clear': 'display: none'
+                                                }}
                                             />
-                                            <span className="absolute right-4 top-3.5 text-gray-400">(🔒)</span>
+                                            <button
+                                                type="button"
+                                                onClick={toggleConfirmPassword}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10 bg-white/50 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center"
+                                                tabIndex="-1"
+                                            >
+                                                {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                                            </button>
                                         </div>
                                         <InputError message={registerForm.errors.password_confirmation} className="mt-2" />
                                     </div>
@@ -258,7 +342,7 @@ export default function Login({ status, canResetPassword }) {
                                                 className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                                             />
                                             <span className="ml-2 text-sm text-gray-600">
-                                                I agree to the <Link href="#" className="text-blue-600 hover:text-blue-800">Terms of Service</Link> and <Link href="#" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
+                                                📝 I agree to the <Link href="#" className="text-blue-600 hover:text-blue-800">Terms of Service</Link> and <Link href="#" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
                                             </span>
                                         </label>
                                         <InputError message={registerForm.errors.terms} className="mt-2" />
@@ -288,6 +372,28 @@ export default function Login({ status, canResetPassword }) {
                     </div>
                 </footer>
             </div>
+
+            {/* Add this style tag to hide browser's password reveal globally */}
+            <style jsx>{`
+                input[type="password"]::-ms-reveal,
+                input[type="password"]::-ms-clear,
+                input[type="password"]::-webkit-textfield-decoration-container,
+                input[type="password"]::-webkit-credentials-auto-fill-button,
+                input[type="password"]::-webkit-contacts-auto-fill-button,
+                input[type="password"]::-webkit-strong-password-auto-fill-button {
+                    display: none !important;
+                    visibility: hidden !important;
+                    pointer-events: none !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                    opacity: 0 !important;
+                }
+                
+                input[type="password"] {
+                    -webkit-appearance: none;
+                    appearance: none;
+                }
+            `}</style>
         </>
     );
 }

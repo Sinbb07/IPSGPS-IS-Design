@@ -20,10 +20,23 @@ Route::get('/welcome', function () {
     ]);
 })->name('welcome');
 
+// PUBLIC DASHBOARD - No authentication required
+// Anyone can access by typing the URL
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->name('dashboard');
 
+// User Dashboard - Public access (no login required)
+Route::get('/user/dashboard', function () {
+    return Inertia::render('User/User_Dashboard');
+})->name('user.dashboard');
+
+// Admin Dashboard - Public access (no login required)
+Route::get('/admin/dashboard', function () {
+    return Inertia::render('Admin/Admin_Dashboard');
+})->name('admin.dashboard');
+
+// Profile routes - These still require authentication
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
